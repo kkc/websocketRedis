@@ -1,16 +1,21 @@
 
+var clientID = process.argv[2] || 'client01';
+var cameraID = process.argv[3] || uuid.v4();
+var port = process.argv[4] || 8080;
+
 var WebSocket = require('ws');
 
-var ws = new WebSocket('ws://localhost:8080');
+var ws = new WebSocket('ws://localhost:' + port);
 
 var uuid = require('node-uuid');
 
+console.log(ws);
 ws.on('open', function open() {
   // register camera
   var msg = {
-    'client': 'client01',
     'action': 'create_stream',
-    'id': 'camera01'
+    'client': clientID,
+    'id': cameraID
   };
   ws.send(JSON.stringify(msg));
 });
