@@ -8,6 +8,7 @@ var uuid = require('node-uuid');
 ws.on('open', function open() {
   // register camera
   var msg = {
+    'client': 'client01',
     'action': 'create_stream',
     'id': 'camera01'
   };

@@ -17,7 +17,11 @@ ws.on('open', function open() {
 
 ws.on('message', function message(msg) {
   console.log('get command', msg);
-  if (msg.action === 'create_stream') {
-    ws.send(JSON.stringify({'action': 'get_command', 'id': 'camera01'}));
+  if (msg === 'registerOK') return;
+  var data = JSON.parse(msg);
+  console.log(data);
+  if (data.action === 'create_stream') {
+    console.log('return', data); 
+    ws.send(JSON.stringify({'action': 'get_command', 'id': 'camera01', 'client': data.client}));
   }
 });

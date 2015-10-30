@@ -11,40 +11,39 @@ sub.subscribe('cameras');
 
 // Listen for messages being published to this server.
 sub.on('message', function(channel, msg) {
-  // Broadcast the message to all connected clients on this server.
-	var message = JSON.parse(msg);
-	console.log(message);
-	console.log(cameras.hasOwnProperty(message.id));
-	if (cameras.hasOwnProperty(message.id)) {
-		cameras[message.id].send(msg);
-	}
+	var data = JSON.parse(msg);
+	if (data.action === 'create_stream' && cameras.hasOwnProperty(data.id)) {
+		cameras[data.id].send(msg);
+	} else if (data.action === 'get_command' && clients.hasOwnProperty(data.client)) {
+    clients[data.client].send(msg);
+  }
 });
 
+
 var cameras = {};
-var clients = [];
+var clients = {};
 var ws = new WebSocketServer({host:'127.0.0.1', port:8080});
 
 ws.on('connection', function(conn) {
-  // Add this client to the client list.
-  clients.push(conn);
-
   // Listen for data coming from clients.
   conn.on('message', function(msg) {
     // Publish this message to the Redis pub/sub.
-		var message = JSON.parse(msg);
-		console.log('debug', message);
+		var data = JSON.parse(msg);
+		console.log('debug', data);
 		// camera part:
-		if (message.action === 'register_camera') {
-			console.log('register camera:', message.id);
-			cameras[message.id] = conn;
+		if (data.action === 'register_camera') {
+			console.log('register camera:', data.id);
+			cameras[data.id] = conn;
 			conn.send('registerOK');
-    	//pub.publish('global', message);
-		}
-
+    	//pub.publish('global', data);
+		} else if (data.action === 'get_command') {
+      pub.publish('cameras', msg);
+    }
 
 		// client part:
-		if (message.action === 'create_stream') {
-			console.log('publish cameras', message); 
+		if (data.action === 'create_stream') {
+			console.log('publish cameras', data); 
+      clients[data.client] = conn;
 			pub.publish('cameras', msg);
 		}
   });
